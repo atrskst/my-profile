@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>My Profile</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #f7f6f3;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", sans-serif;
+}
+.container {
+  width: min(100% - 36px, 440px);
+  margin: 55px auto;
+  text-align: center;
+}
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #e6ded4;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+}
+h1 { font-size: 23px; margin: 12px 0; }
+.description {
+  color: #777;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 30px;
+}
+.social {
+  display: block;
+  background: white;
+  border: 1px solid #eae7e2;
+  border-radius: 14px;
+  padding: 17px;
+  margin: 12px 0;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  transition: .2s;
+}
+.social:active { transform: scale(.98); }
+.note {
+  background: white;
+  border-radius: 16px;
+  padding: 25px 20px;
+  margin-top: 30px;
+  line-height: 1.8;
+}
+.open-button {
+  display: block;
+  background: #333;
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  text-decoration: none;
+  margin-top: 18px;
+}
+.hidden { display: none; }
+footer {
+  margin-top: 40px;
+  font-size: 11px;
+  color: #aaa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div id="redirect">
+    <div class="avatar">✦</div>
+    <h1>ブラウザを開いています</h1>
+    <p class="description">
+      SafariまたはChromeへの移動を試みています。<br>
+      自動で開かない場合は下のボタンを押してください。
+    </p>
+    <div class="note">
+      <strong id="browserName">ブラウザを選択してください</strong>
+      <a id="openButton" class="open-button" href="#">
+        ブラウザで開く
+      </a>
+      <p style="font-size:12px;color:#888">
+        ボタンを押しても開かない場合は、アプリ右上の
+        「…」からブラウザで開いてください。
+      </p>
+    </div>
+  </div>
+
+  <div id="profile" class="hidden">
+    <div class="avatar">✦</div>
+    <h1>ﾊﾞﾁﾎﾞｺ😈るでぃ</h1>
+    <p class="description">
+      こんにちは！プロフィールをご覧いただきありがとう
+    </p>
+
+    <a class="social" href="https://www.instagram.com/">
+      Instagram
+    </a>
+    <a class="social" href="https://x.com/">
+      X (Twitter)
+    </a>
+    <a class="social" href="https://www.youtube.com/">
+      YouTube
+    </a>
+    <a class="social" href="https://www.tiktok.com/">
+      TikTok
+    </a>
+    <a class="social" href="mailto:example@example.com">
+      Contact
+    </a>
+  </div>
+
+  <footer>seniavx</footer>
+</div>
+
+<script>
+(() => {
+  const ua = navigator.userAgent;
+  const url = new URL(location.href);
+
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+    (navigator.platform === "MacIntel" &&
+     navigator.maxTouchPoints > 1);
+
+  const isAndroid = /Android/i.test(ua);
+
+  const isInstagram = /Instagram/i.test(ua);
+  const isInApp = /Instagram|FBAN|FBAV|Twitter|TikTok|Line\//i.test(ua);
+
+  const redirect = document.getElementById("redirect");
+  const profile = document.getElementById("profile");
+  const button = document.getElementById("openButton");
+  const browserName = document.getElementById("browserName");
+
+  // 外部ブラウザで開かれた場合はプロフィールを表示
+  if (!isInApp || url.searchParams.get("external") === "1") {
+    redirect.classList.add("hidden");
+    profile.classList.remove("hidden");
+    return;
+  }
+
+  // リダイレクト先URL（無限ループ防止用のパラメータ付き）
+  const destination = new URL(location.href);
+  destination.searchParams.set("external", "1");
+  const target = destination.href;
+
+  // iPhone
+  if (isIOS) {
+    browserName.textContent = "Safariで開く";
+
+    button.href = "x-safari-https://" +
+      destination.host + destination.pathname +
+      destination.search;
+
+    // Instagram独自の外部ブラウザ起動機能
+    if (isInstagram) {
+      location.replace(
+        "instagram://extbrowser/?url=" +
+        encodeURIComponent(target)
+      );
+    }
+
+  // Android
+  } else if (isAndroid) {
+    browserName.textContent = "Chromeで開く";
+
+    const intent =
+      "intent://" +
+      destination.host +
+      destination.pathname +
+      destination.search +
+      "#Intent;" +
+      "scheme=https;" +
+      "action=android.intent.action.VIEW;" +
+      "package=com.android.chrome;" +
+      "S.browser_fallback_url=" +
+      encodeURIComponent(target) +
+      ";end";
+
+    button.href = intent;
+
+    // アプリ内ブラウザからChromeを起動
+    location.href = intent;
+
+  } else {
+    browserName.textContent = "外部ブラウザで開く";
+    button.href = target;
+  }
+
+  // 自動遷移に失敗した場合の案内を残す
+  redirect.classList.remove("hidden");
+
+})();
+</script>
+
+</body>
+</html>
