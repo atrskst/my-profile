@@ -72,6 +72,57 @@ footer {
   font-size: 11px;
   color: #aaa;
 }
+#browserGuide {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0,0,0,.65);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#browserGuide.show {
+  display: flex;
+}
+
+.browser-guide-box {
+  background: #fff;
+  color: #333;
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 22px;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.browser-guide-box h2 {
+  font-size: 21px;
+  margin-bottom: 12px;
+}
+
+.browser-guide-box p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #777;
+}
+
+.browser-guide-box button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #333;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+#browserFallback {
+  display: none;
+}
 </style>
 </head>
 
@@ -204,7 +255,78 @@ footer {
 
 })();
 </script>
+<div id="browserGuide">
+  <div class="browser-guide-box">
 
+    <h2 id="guideTitle">Safariで開きますか？</h2>
+
+    <p id="guideDescription">
+      より快適にプロフィールをご覧いただくため、
+      外部ブラウザでの閲覧をおすすめします。
+    </p>
+
+    <button id="openExternal">
+      Safariで開く
+    </button>
+
+    <div id="browserFallback">
+      <p>
+        自動で開かない場合は、X画面右上の
+        「…」から「ブラウザで開く」を選択してください。
+      </p>
+    </div>
+
+    <button id="closeGuide"
+      style="background:#eee;color:#333;">
+      このまま見る
+    </button>
+
+  </div>
+</div>
+<script>
+(() => {
+  const ua = navigator.userAgent || "";
+
+  const isX = /Twitter for iPhone|TwitterAndroid/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
+  if (!isX || (!isIOS && !isAndroid)) return;
+
+  const guide = document.getElementById("browserGuide");
+  const title = document.getElementById("guideTitle");
+  const button = document.getElementById("openExternal");
+  const fallback = document.getElementById("browserFallback");
+
+  if (!guide || !button) return;
+
+  if (isAndroid) {
+    title.textContent = "Chromeで開きますか？";
+    button.textContent = "Chromeで開く";
+  }
+
+  guide.classList.add("show");
+
+  button.addEventListener("click", () => {
+    const url = location.href.replace(/^https?:\/\//i, "");
+
+    if (isIOS) {
+      location.href = "x-safari-https://" + url;
+    } else if (isAndroid) {
+      location.href =
+        "intent://" + url +
+        "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+
+    fallback.style.display = "block";
+  });
+
+  document.getElementById("closeGuide")
+    .addEventListener("click", () => {
+      guide.classList.remove("show");
+    });
+})();
+</script>
 </body>
 </html>
 <!-- GitHub Pages rebuild -->
